@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   DirectionsService,
   DirectionsRenderer,
@@ -7,6 +7,11 @@ import {
   useJsApiLoader,
 } from "@react-google-maps/api";
 import Directions from "./Directions";
+import axios from "axios";
+
+axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.headers.post["Content-Type"] = "application/json;charset=utf-8";
+axios.defaults.headers.post["Access-Control-Allow-Origin"] = "*";
 
 const containerStyle = {
   width: "800px",
@@ -39,7 +44,7 @@ function MyComponent() {
   });
 
   const [map, setMap] = React.useState(null);
-  const [directions, setDirections] = React.useState(null);
+  const [stops, setStops] = useState([]);
 
   const onLoad = React.useCallback(function callback(map) {
     const bounds = new window.google.maps.LatLngBounds();
@@ -50,6 +55,28 @@ function MyComponent() {
   const onUnmount = React.useCallback(function callback(map) {
     setMap(null);
   }, []);
+
+  useEffect(() => {
+    async function getUser() {
+      try {
+        console.log("getting things");
+        const response = await axios.post("route");
+        setStops(
+          response.data.map((loc) => {
+            return { lng: loc.longitude, lat: loc.latitude };
+          })
+        );
+        console.log(response);
+      } catch (error) {
+        console.error("bad", error);
+      }
+    }
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    console.log(stops);
+  }, [stops]);
 
   return isLoaded ? (
     <GoogleMap
@@ -63,8 +90,8 @@ function MyComponent() {
       onLoad={onLoad}
       onUnmount={onUnmount}
     >
-      <Marker position={center}></Marker>
-      <Directions start={center} end={center4} stopovers={[center2, center3]} />
+      {/* <Marker position={center}></Marker> */}
+      {stops.length > 0 && <Directions stops={stops} />}
     </GoogleMap>
   ) : (
     <></>
