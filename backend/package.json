@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/bigquery": "^5.9.1",
     "express": "^4.17.1",
     "mysql": "^2.18.1"
   }
